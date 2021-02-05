@@ -163,16 +163,23 @@ void getfield(int a1, int a2, const char* a3) {
 }
 void main() {
 
-    Console("ScriptX Executor");
+    Console("exWare Executor");
 
-    cout << "ScriptX Early Development Build" << endl << endl << endl;
+    cout << "exWare Early Development Build" << endl << endl << endl;
 
     int scriptc = aslr(0x01F88AC8);
-    cout << "Scanning for ScriptContext...";
+    cout << "Scanning for ScriptContext... ";
     DWORD scriptContext = memory::Scan((char*)&scriptc);
-    cout << "Done" << endl;
+    cout << "Done" << endl << "Scanning for lua_state... ";
 
     int state = getstate((DWORD)scriptContext);
+    if (pseudogettop(state) == 0) {
+        cout << ""
+    }
+    else {
+        cout << "FATAL: ScriptContext failed to initialize, lua_state is nonexistant. The exploit will not continue.";
+        return;
+    }
 
     printTop(state);
     getfield(state, -10002, "game");

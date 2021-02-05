@@ -94,47 +94,31 @@ string int2hex(int addr) {
 
 namespace retcheck {
 
-    void patchRetcheck(BYTE* functionalAddr, DWORD addr) {
-        int replacementByte = 0xEB;
+    int retcheckInstructions[] = { 0x72, 0xA1, 0x8B };
+    int replacementByte = 0xEB;
 
-        string result = int2hex((int)functionalAddr);
-        DWORD jmpLoc = functionalAddr - (BYTE*)addr;
-        addr += jmpLoc;
+    void patchRetcheck(BYTE* functionalAddr) {
         if (functionalAddr[0] == 0x72 && functionalAddr[2] == 0xA1 && functionalAddr[7] == 0x8B) {
-            //cout << "Found retcheck at 0x" << uppercase << result << ". (0x" << int2hex(*(BYTE*)addr) << ", 0xA1, 0x8B)" << endl;
-            //cout << "Writing 0xEB to 0x" << int2hex(addr) << endl;
-            WriteProcessMemory(GetCurrentProcess(), *(LPVOID*)&addr, (LPVOID)&replacementByte, 1, NULL);
+            WriteProcessMemory(GetCurrentProcess(), *(LPVOID*)&functionalAddr, (LPVOID)&replacementByte, 1, NULL);
         }
     }
 
-    void restoreRetcheck(BYTE* functionalAddr, DWORD addr) {
-
-        int retcheckInstructions[] = { 0x72, 0xA1, 0x8B };
-        int replacementByte = 0xEB;
-        string result = int2hex((int)functionalAddr);
-        DWORD jmpLoc = functionalAddr - (BYTE*)addr;
-        addr += jmpLoc;
-
+    void restoreRetcheck(BYTE* functionalAddr) {
         if (functionalAddr[0] == replacementByte && functionalAddr[2] == 0xA1 && functionalAddr[7] == 0x8B) {
-            //cout << "Found BYPASSED retcheck at 0x" << uppercase << result << ". (0x" << int2hex(functionalAddr[0]) << ", 0xA1, 0x8B)" << endl;
-            //cout << "Unpatching 0xEB back to 0x" << int2hex(retcheckInstructions[0]) << endl;
-            WriteProcessMemory(GetCurrentProcess(), *(LPVOID*)&addr, (LPVOID)&retcheckInstructions[0], 1, NULL);
+            WriteProcessMemory(GetCurrentProcess(), *(LPVOID*)&functionalAddr, (LPVOID)&retcheckInstructions[0], 1, NULL);
         }
     }
 
-    bool checkRetcheck(DWORD addr) {
-        int retcheckInstructions[] = { 0x72, 0xA1, 0x8B };
-        int replacementByte = 0xEB;
-
-        BYTE* functionalAddr = (BYTE*)addr;
+    bool checkRetcheck(DWORD addy) {
+        BYTE* functionalAddr = (BYTE*)addy;
         while (!(functionalAddr[0] == retcheckInstructions[0] && functionalAddr[2] == retcheckInstructions[1] && functionalAddr[7] == retcheckInstructions[2])) {
             if (functionalAddr[0] == replacementByte && functionalAddr[2] == 0xA1 && functionalAddr[7] == 0x8B) {
-                restoreRetcheck(functionalAddr, addr);
+                restoreRetcheck(functionalAddr);
                 return false;
             }
-            functionalAddr += 1; // All calls are aligned to 16 bytes!! 1 spams too much
+            functionalAddr += 1;
         }
-        patchRetcheck(functionalAddr, addr);
+        patchRetcheck(functionalAddr);
         return true;
     }
 }
@@ -149,12 +133,17 @@ void printTop(int state) {
 namespace address {
     int getfield_s = aslr(0x1360240);
     int pushstring_s = aslr(0x01360DE0);
+    int pushvalue_s = aslr(0x01360F50);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
     clua_getfield getfield = (clua_getfield)address::getfield_s; //works
     typedef int(__fastcall* clua_pushstring)(int, int, const char*);
-    clua_pushstring getfield = (clua_pushstring)address::pushstring_s; //works
+    clua_pushstring pushstring = (clua_pushstring)address::pushstring_s; //works
+    typedef int(__fastcall* clua_pushvalue)(int, int);
+    clua_pushvalue pushvalue = (clua_pushvalue)address::pushvalue_s; //works
+
+    
 
 }
 
@@ -162,8 +151,14 @@ void getfield(int a1, int a2, const char* a3) {
     retcheck::checkRetcheck(aslr(0x1360240));
     clua::getfield(a1, a2, a3);
     retcheck::checkRetcheck(aslr(0x1360240));
-
 }
+
+void pushvalue(int a1, int a2) {
+    //retcheck::checkRetcheck(aslr(0x01360F50));
+    clua::pushvalue(a1, a2);
+    //retcheck::checkRetcheck(aslr(0x01360F50));
+}
+
 void main() {
 
     Console("exWare Executor");
@@ -188,6 +183,14 @@ void main() {
     getfield(state, -10002, "game");
     getfield(state, -1, "Workspace");
     getfield(state, -1, "runtoheven");
+    getfield(state, -1, "BreakJoints");
+
+    printTop(state);
+
+
+    pushvalue(state, -10002);
+
+    
     printTop(state);
 }
 

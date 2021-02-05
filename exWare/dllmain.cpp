@@ -148,10 +148,13 @@ void printTop(int state) {
 
 namespace address {
     int getfield_s = aslr(0x1360240);
+    int pushstring_s = aslr(0x01360DE0);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
     clua_getfield getfield = (clua_getfield)address::getfield_s; //works
+    typedef int(__fastcall* clua_pushstring)(int, int, const char*);
+    clua_pushstring getfield = (clua_pushstring)address::pushstring_s; //works
 
 }
 
@@ -174,15 +177,17 @@ void main() {
 
     int state = getstate((DWORD)scriptContext);
     if (pseudogettop(state) == 0) {
-        cout << ""
+        cout << "Done." << endl;
     }
     else {
-        cout << "FATAL: ScriptContext failed to initialize, lua_state is nonexistant. The exploit will not continue.";
+        cout << "Failed." << endl << "FATAL: ScriptContext failed to initialize, lua_state is nonexistant. The exploit will not continue. " << endl << "Top: " << pseudogettop(state) << " (should be 0)";
         return;
     }
 
     printTop(state);
     getfield(state, -10002, "game");
+    getfield(state, -1, "Workspace");
+    getfield(state, -1, "runtoheven");
     printTop(state);
 }
 

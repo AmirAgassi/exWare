@@ -1,7 +1,5 @@
 # exWare
- A modern CLVM script execution exploit challenging Roblox's new security and integrity checks.
- 
-exWare 
+ A modern CLVM script execution exploit challenging Roblox's new security and integrity checks. 
  
 Further details coming later. Exploit projected to be completed ~Q1 2022, I am not good at this.
 

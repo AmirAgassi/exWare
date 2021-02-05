@@ -1,0 +1,6 @@
+﻿  pch.cpp
+  dllmain.cpp
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(15,1): warning C4005: '_CRT_SECURE_NO_WARNINGS': macro redefinition
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\pch.cpp : message : see previous definition of '_CRT_SECURE_NO_WARNINGS'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(164,13): warning C4326: return type of 'main' should be 'int' instead of 'void'
+  exWare.vcxproj -> C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\Debug\exWare.dll

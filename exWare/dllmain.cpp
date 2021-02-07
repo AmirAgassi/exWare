@@ -156,14 +156,23 @@ namespace address {
     int getfield_s = AOB::FindPattern("\x55\x8B\xEC\x8B\x55\x0C\x83\xEC\x10\x56\x8B\x75\x08\x57\x85\xD2", "xxxxxxxxxxxxxxx"); // 0x1360240
     int pushstring_s = AOB::FindPattern("\x55\x8B\xEC\x51\x8B\xC2\x89\x45\xFC\x53\x8B\xD9\x85\xC0\x75\x08", "xxxxxxxxxxxxxxxx"); //0x01360DE0
     int pcall_s = AOB::FindPattern("\x55\x8B\xEC\x8B\x55\x14\x83\xEC\x08\x53\x57\x8B\x7D\x08\x85\xD2", "xxxxxxxxxxxxxxxx"); //0x013609B0
+    int gettable_s = aslr(0x13603A0);
+    int remove_s = aslr(0x01361470);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
     clua_getfield getfield = (clua_getfield)address::getfield_s;
-    typedef int(__fastcall* clua_pushstring)(int, int, const char*);
+    typedef int(__fastcall* clua_pushstring)(int, const char*);
     clua_pushstring pushstring = (clua_pushstring)address::pushstring_s; 
-    typedef void*(__cdecl* clua_pcall)(int, int, int, int);
+    typedef void* (__cdecl* clua_pcall)(int, int, int, int);
     clua_pcall pcall = (clua_pcall)address::pcall_s;
+
+    typedef void* (__cdecl* clua_gettable)(int, int);
+    clua_gettable gettable = (clua_gettable)address::gettable_s;
+
+    typedef void* (__cdecl* clua_remove)(int, int);
+    clua_remove remove = (clua_remove)address::remove_s;
+
 
 }
 
@@ -173,11 +182,26 @@ void getfield(int a1, int a2, const char* a3) {
     retcheck::checkRetcheck(address::getfield_s);
 }
 
-
+void pushstring(int a1, const char* a2) {
+    retcheck::checkRetcheck(address::pushstring_s);
+    clua::pushstring(a1, a2);
+    retcheck::checkRetcheck(address::pushstring_s);
+}
 void pcall(int a1, int a2, int a3, int a4) {
     retcheck::checkRetcheck(address::pcall_s);
     clua::pcall(a1, a2, a3, a4);
     retcheck::checkRetcheck(address::pcall_s);
+}
+void gettable(int a1, int a2) {
+    retcheck::checkRetcheck(address::gettable_s);
+    clua::gettable(a1, a2);
+    retcheck::checkRetcheck(address::gettable_s);
+}
+
+void remove(int a1, int a2) {
+    retcheck::checkRetcheck(address::remove_s);
+    clua::remove(a1, a2);
+    retcheck::checkRetcheck(address::remove_s);
 }
 
 
@@ -230,7 +254,24 @@ void pushvalue(int a1, int a2) {
     *(_DWORD*)(a1 + 24) += 16;
 }
 
+void pushboolean(int a1, int a2) {
+    DWORD* v2 = *(_DWORD**)(a1 + 24);
+    *v2 = a2 != 0;
+    v2[3] = 1;
+    *(_DWORD*)(a1 + 24) += 16;
+}
 
+int pcallx(int a1, int a2, int a3) {
+    pcall(a1, a2, a3, 0);
+
+}
+#define lua_getfield getfield
+#define lua_pushliteral pushstring
+#define lua_call pcallx
+#define lua_gettop pseudogettop
+#define lua_gettable gettable
+#define lua_remove remove
+#define lua_pushboolean pushboolean
 void main() {
 
     Console("exWare Executor");
@@ -254,11 +295,26 @@ void main() {
         return;
     }
    
+    int L = state;
+    enum { lc_nformalargs = 0 };
+    const int lc_nactualargs = lua_gettop(L);
+    const int lc_nextra = (lc_nactualargs - lc_nformalargs);
 
-    getfield(state, -10002, "workspace");
-    getfield(state, -1, "breakJoints");
-    pushvalue(state, -2);
-    pcall(state, 1, 0, 0);
+    /* if game.Workspace.FilteringEnabled == false then */
+    enum { lc1 = 0 };
+    lua_getfield(L, LUA_ENVIRONINDEX, "game");
+    lua_pushliteral(L, "Workspace");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_pushliteral(L, "FilteringEnabled");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_pushboolean(L, 0);
+    const int lc2 = lua_equal(L, -2, -1);
+    lua_pop(L, 2);
+    lua_pushboolean(L, lc2);
+    const int lc3 = lua_toboolean(L, -1);
+    lua_pop(L, 1);
 }
 
 

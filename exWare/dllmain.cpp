@@ -144,15 +144,17 @@ namespace AOB {
             if (Check((BYTE*)ind, (BYTE*)aob, mask))
                 return ind;
         }
-        return 0x00000000;
+        return 69;
     }
+
 }
 
 
+
+
 namespace address {
-    int getfield_s = aslr(0x1360240); 
+    int getfield_s = AOB::FindPattern("\x55\x8B\xEC\x8B\x55\x0C\x83\xEC\x10\x56\x8B\x75\x08\x57\x85\xD2", "xxxxxxxxxxxxxxx"); // 0x1360240
     int pushstring_s = AOB::FindPattern("\x55\x8B\xEC\x51\x8B\xC2\x89\x45\xFC\x53\x8B\xD9\x85\xC0\x75\x08", "xxxxxxxxxxxxxxxx"); //0x01360DE0
-    //int pushvalue_s = aslr(0x01360F50);   uses a pseudo function
     int pcall_s = AOB::FindPattern("\x55\x8B\xEC\x8B\x55\x14\x83\xEC\x08\x53\x57\x8B\x7D\x08\x85\xD2", "xxxxxxxxxxxxxxxx"); //0x013609B0
 }
 namespace clua {
@@ -160,12 +162,8 @@ namespace clua {
     clua_getfield getfield = (clua_getfield)address::getfield_s;
     typedef int(__fastcall* clua_pushstring)(int, int, const char*);
     clua_pushstring pushstring = (clua_pushstring)address::pushstring_s; 
-    //typedef void* (__stdcall* clua_pushvalue)(int, int);
-    //clua_pushvalue pushvalue = (clua_pushvalue)address::pushvalue_s;
     typedef void*(__cdecl* clua_pcall)(int, int, int, int);
     clua_pcall pcall = (clua_pcall)address::pcall_s;
-   
-    
 
 }
 
@@ -183,27 +181,23 @@ void pcall(int a1, int a2, int a3, int a4) {
 }
 
 
-
-
 #define LUA_REGISTRYINDEX       (-10000)
 #define LUA_ENVIRONINDEX        (-10001)
 #define LUA_GLOBALSINDEX        (-10002)
+
+
 DWORD* index2adr(DWORD* lua_state, signed int index) {
     // IDA PRO @ sub_1360F50
-
     _DWORD* result; // eax
     int v3; // esi
     int v4; // edx
     int v5; // ecx
-
     if (index > LUA_REGISTRYINDEX)
         return (_DWORD*)(lua_state[6] + 16 * index);
-
     switch (index)
     {
         case LUA_GLOBALSINDEX:
             return lua_state + 20;
-
         case LUA_ENVIRONINDEX:
             v4 = lua_state[7];
             result = lua_state + 14;
@@ -214,11 +208,9 @@ DWORD* index2adr(DWORD* lua_state, signed int index) {
             *result = v5;
             result[3] = 8;
             break;
-
         case LUA_REGISTRYINDEX:
             result = (_DWORD*)(((unsigned int)(lua_state + 4) ^ lua_state[4]) + 368);
             break;
-
         default:
             v3 = **(_DWORD**)(lua_state[7] + 12);
             if (-10002 - index > *(unsigned __int8*)(v3 + 7))
@@ -226,17 +218,14 @@ DWORD* index2adr(DWORD* lua_state, signed int index) {
             else
                 result = (_DWORD*)(v3 + 16 * (-10002 - index) + 24);
             break;
-
     }
     return result;
 
 }
 
-void pseudopushvalue(int a1, int a2) {
+void pushvalue(int a1, int a2) {
     DWORD* v4 = index2adr((_DWORD*)a1, a2);
-    DWORD* v3;
-    DWORD* v2;
-    v3 = *(DWORD**)(a1 + 24);
+    DWORD* v3 = *(DWORD**)(a1 + 24);
     *v3 = *(DWORD*)v4;
     *(_DWORD*)(a1 + 24) += 16;
 }
@@ -268,7 +257,7 @@ void main() {
 
     getfield(state, -10002, "workspace");
     getfield(state, -1, "breakJoints");
-    pseudopushvalue(state, -2);
+    pushvalue(state, -2);
     pcall(state, 1, 0, 0);
 }
 

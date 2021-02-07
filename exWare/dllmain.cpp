@@ -10,6 +10,7 @@
 #include <functional>
 #include <iterator>
 #include <string.h>
+#include <assert.h>
 using namespace std;
 #define _CRT_SECURE_NO_DEPRICATE
 #define _CRT_SECURE_NO_WARNINGS
@@ -159,12 +160,18 @@ namespace address {
     int gettable_s = aslr(0x13603A0);
     int remove_s = aslr(0x01361470);
     int equal_s = aslr(0x013610A0);
+    int settable_s = aslr(0x1361970);
+    int isnumber_s = aslr(0x13605E0);
+    int replace_s = aslr(0x1361500);
+    int getmetafield_s = aslr(0x1362720);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
     clua_getfield getfield = (clua_getfield)address::getfield_s;
+
     typedef int(__fastcall* clua_pushstring)(int, const char*);
     clua_pushstring pushstring = (clua_pushstring)address::pushstring_s; 
+
     typedef void* (__cdecl* clua_pcall)(int, int, int, int);
     clua_pcall pcall = (clua_pcall)address::pcall_s;
 
@@ -174,8 +181,22 @@ namespace clua {
     typedef void* (__cdecl* clua_remove)(int, int);
     clua_remove remove = (clua_remove)address::remove_s;
 
-    typedef int (__cdecl* clua_equal)(int, int, int);
+    typedef int(__cdecl* clua_equal)(int, int, int);
     clua_equal equal = (clua_equal)address::equal_s;
+
+    typedef int(__cdecl* clua_settable)(int, int);
+    clua_settable settable = (clua_settable)address::settable_s;
+
+    typedef int(__cdecl* clua_isnumber)(int, signed int);
+    clua_isnumber isnumber = (clua_isnumber)address::isnumber_s;
+
+    typedef int(__cdecl* clua_replace)(int, signed int);
+    clua_replace replace = (clua_replace)address::replace_s;
+
+    typedef int(__cdecl* clua_getmetafield)(int, int, const char*);
+    clua_getmetafield getmetafield = (clua_getmetafield)address::getmetafield_s;
+
+
 
 
 }
@@ -206,6 +227,18 @@ void remove(int a1, int a2) {
     retcheck::checkRetcheck(address::remove_s);
     clua::remove(a1, a2);
     retcheck::checkRetcheck(address::remove_s);
+}
+
+void settable(int a1, int a2) {
+    retcheck::checkRetcheck(address::settable_s);
+    clua::settable(a1, a2);
+    retcheck::checkRetcheck(address::settable_s);
+}
+
+void replace(int a1, int a2) {
+    retcheck::checkRetcheck(address::replace_s);
+    clua::replace(a1, a2);
+    retcheck::checkRetcheck(address::replace_s);
 }
 
 int equal(int a1, int a2, int a3) {
@@ -310,7 +343,7 @@ BOOL toboolean(int a1x, signed int a2) {
     }
     else
     {
-        cout << "FATAL: POSITIVE TOBOOLEAN QUERIED. ill fix this if its ever an actual error, fuck is 0x2153A30 supposed to be??" << endl;
+        cout << "FATAL: POSITIVE TOBOOLEAN INDEX QUERIED. ill fix this if its ever an actual error, fuck is 0x2153A30 supposed to be??" << endl;
         /*v2 = &unk_2153A30;
         if ((unsigned int)(16 * a2 - 16 + a1[5]) < a1[6])
             v2 = (_DWORD*)(16 * a2 - 16 + a1[5]);
@@ -319,6 +352,98 @@ BOOL toboolean(int a1x, signed int a2) {
     return result;
 
 }
+
+int* insert(int a1x, signed int a2) {
+    DWORD* a1 = (DWORD*)a1x;
+    DWORD* v2; // ecx
+    DWORD* v3; // edx
+    _DWORD* v4; // eax
+    int* result; // eax
+    if (a2 <= 0)
+    {
+        v4 = index2adr(a1, a2);
+        v2 = (DWORD*)a1[6];
+        v3 = v4;
+    }
+    else
+    {
+        v2 = (DWORD*)a1[6];
+        v3 = (DWORD*)(a1[5] + 16 * a2 - 16);
+        if (v2 > v3)
+        {
+            do
+            {
+            LABEL_6:
+                *v2 = *(v2 - 1);
+                --v2;
+            } while (v2 > v3);
+            v2 = (DWORD*)a1[6];
+            goto LABEL_8;
+        }
+        int v = aslr(0x2153A30);
+        DWORD x = (DWORD)v;
+        v3 = &x;
+    }
+    if (v2 > v3)
+        goto LABEL_6;
+LABEL_8:
+    *v3 = *v2;
+    return 0;
+}
+
+
+
+void pushnumber(int a1x, __int64 a2) {
+    DWORD* a1 = (DWORD*)a1x;
+    int v2; // eax
+    int* result; // eax
+
+    v2 = a1[6];
+    *(DWORD*)v2 = aslr(0x28D9D90) ^ a2;
+    *(_DWORD*)(v2 + 12) = 4;
+    a1[6] += 16;
+
+}
+
+
+
+double tonumber(int a1x, signed int a2) {
+    DWORD* a3 = 0;
+    DWORD* a1 = (DWORD*)a1x;
+    _DWORD* v3; // edx
+    double result; // st7
+    char v5; // [esp+0h] [ebp-10h]
+    result = 0;
+    if (a2 <= 0)
+    {
+        v3 = index2adr(a1, a2);
+    }
+    else
+    {
+        /*
+        v3 = &unk_2153A30;
+        if ((unsigned int)(16 * a2 - 16 + a1[5]) < a1[6])
+            v3 = (_DWORD*)(16 * a2 - 16 + a1[5]);*/
+        cout << "FATAL: POSITIVE TONUMBER INDEX QUERIED. ill fix this if its ever an actual error lol" << endl;
+        return result;
+    }
+    if (v3[3] == 4 != 0)
+    {
+        if (a3)
+            *a3 = 1;
+        result = (double)(*(_DWORD*)v3 ^ aslr(0x28D9D90));
+    }
+    else
+    {
+        if (a3)
+            *a3 = 0;
+        result = 0.0;
+    }
+    return result;
+}
+
+
+
 #define lua_getfield getfield
 #define lua_pushliteral pushstring
 #define lua_call pcallx
@@ -330,6 +455,59 @@ BOOL toboolean(int a1x, signed int a2) {
 #define lua_settop settop
 #define lua_pop(L,n) lua_settop(L, -(n)-1)
 #define lua_toboolean toboolean
+#define lua_pushvalue pushvalue
+#define lua_insert insert
+#define lua_settable settable
+#define lua_pushnumber pushnumber
+#define lua_isnumber clua::isnumber
+#define lua_tonumber tonumber
+#define LUA_MULTRET     (-1)
+#define lua_replace replace
+
+#define LUA_TNIL                0
+#define LUA_TBOOLEAN            1
+#define LUA_TLIGHTUSERDATA      2
+#define LUA_TNUMBER             3
+#define LUA_TSTRING             4
+#define LUA_TTABLE              5
+#define LUA_TFUNCTION           6
+#define LUA_TUSERDATA           7
+#define LUA_TTHREAD             8
+#define lua_isnil(L,n)          (type(L, (n)) == LUA_TNIL)
+signed int type(int a1x, signed int a2) {
+    DWORD* a1 = (DWORD*)a1x;
+    _DWORD* v2; // eax
+
+    if (a2 <= 0)
+    {
+        v2 = index2adr(a1, a2);
+    }
+    else
+    {
+        v2 = (_DWORD*)(16 * a2 + a1[5] - 16);
+        if ((unsigned int)v2 >= a1[6])
+            return -1;
+    }
+    return v2[3];
+
+}
+
+
+static void lc_add(int L, int idxa, int idxb) {
+    if (lua_isnumber(L, idxa) && lua_isnumber(L, idxb)) {
+        lua_pushnumber(L, lua_tonumber(L, idxa) + lua_tonumber(L, idxb));
+    }
+    else {
+        if (clua::getmetafield(L, idxa, "__add") || clua::getmetafield(L, idxb, "__add")) {
+            lua_pushvalue(L, idxa < 0 && idxa > LUA_REGISTRYINDEX ? idxa - 1 : idxa);
+            lua_pushvalue(L, idxb < 0 && idxb > LUA_REGISTRYINDEX ? idxb - 2 : idxb);
+            lua_call(L, 2, 1);
+        }
+        else {
+            cout << "attempt to perform arithmetic" << endl;
+        }
+    }
+}
 
 
 void main() {
@@ -354,57 +532,62 @@ void main() {
         cout << "Failed." << endl << "FATAL: ScriptContext failed to initialize, lua_state is nonexistant. The exploit will not continue. " << endl << "Top: " << pseudogettop(state) << " (should be 0)";
         return;
     }
-   
+
     int L = state;
+
+
     enum { lc_nformalargs = 0 };
     const int lc_nactualargs = lua_gettop(L);
     const int lc_nextra = (lc_nactualargs - lc_nformalargs);
 
-    /* if game.Workspace.FilteringEnabled == false then */
+    /* for _,v in pairs(game.Workspace.runtoheven:GetChildren()) do
+     * internal: local f, s, var = explist */
     enum { lc1 = 0 };
+    lua_getfield(L, LUA_ENVIRONINDEX, "pairs");
+    const int lc2 = lua_gettop(L);
     lua_getfield(L, LUA_ENVIRONINDEX, "game");
     lua_pushliteral(L, "Workspace");
     lua_gettable(L, -2);
     lua_remove(L, -2);
-    lua_pushliteral(L, "FilteringEnabled");
+    lua_pushliteral(L, "runtoheven");
     lua_gettable(L, -2);
     lua_remove(L, -2);
-    lua_pushboolean(L, 0);
-    const int lc2 = lua_equal(L, -2, -1);
-    lua_pop(L, 2);
-    lua_pushboolean(L, lc2);
-    const int lc3 = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-    if (lc3) {
-        lua_getfield(L, LUA_ENVIRONINDEX, "print");
-        lua_pushliteral(L, "Filtering is disabled!");
-        lua_call(L, 1, 0);
-        //assert(lua_gettop(L) - lc_nextra == 0);
-    }
-    enum { lc4 = 0 };
-    lua_getfield(L, LUA_ENVIRONINDEX, "game");
-    lua_pushliteral(L, "Workspace");
+    lua_pushliteral(L, "GetChildren");
     lua_gettable(L, -2);
-    lua_remove(L, -2);
-    lua_pushliteral(L, "FilteringEnabled");
-    lua_gettable(L, -2);
-    lua_remove(L, -2);
-    lua_pushboolean(L, 1);
-    const int lc5 = lua_equal(L, -2, -1);
-    lua_pop(L, 2);
-    lua_pushboolean(L, lc5);
-    const int lc6 = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-    if (lc6) {
+    lua_insert(L, -2);
+    lua_call(L, 1, LUA_MULTRET);
+    lua_call(L, (lua_gettop(L) - lc2), 3);
+    while (1) {
 
-        /* print("Filtering is enabled!") */
+        /* internal: local var_1, ..., var_n = f(s, var)
+         *           if var_1 == nil then break end
+         *           var = var_1 */
+        lua_pushvalue(L, -3);
+        lua_pushvalue(L, -3);
+        lua_pushvalue(L, -3);
+        lua_call(L, 2, 2);
+        if (lua_isnil(L, -2)) {
+            break;
+        }
+        lua_pushvalue(L, -2);
+        lua_replace(L, -4);
+
+        /* internal: local _ with idx 4
+         * internal: local v with idx 5 */
+
+
+         /* print(v) */
         lua_getfield(L, LUA_ENVIRONINDEX, "print");
-        lua_pushliteral(L, "Filtering is enabled!");
+        lua_pushvalue(L, (5 + lc_nextra));
         lua_call(L, 1, 0);
-        //assert(lua_gettop(L) - lc_nextra == 0);
+        assert(lua_gettop(L) - lc_nextra == 5);
+
+        /* internal: stack cleanup on scope exit */
+        lua_pop(L, 2);
     }
-    lua_settop(L, (lc4 + lc_nextra));
-    //assert(lua_gettop(L) - lc_nextra == 0);
+    lua_settop(L, (lc1 + lc_nextra));
+    assert(lua_gettop(L) - lc_nextra == 0);
+
 }
 
 

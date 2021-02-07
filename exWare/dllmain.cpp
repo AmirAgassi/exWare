@@ -158,6 +158,7 @@ namespace address {
     int pcall_s = AOB::FindPattern("\x55\x8B\xEC\x8B\x55\x14\x83\xEC\x08\x53\x57\x8B\x7D\x08\x85\xD2", "xxxxxxxxxxxxxxxx"); //0x013609B0
     int gettable_s = aslr(0x13603A0);
     int remove_s = aslr(0x01361470);
+    int equal_s = aslr(0x013610A0);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
@@ -172,6 +173,9 @@ namespace clua {
 
     typedef void* (__cdecl* clua_remove)(int, int);
     clua_remove remove = (clua_remove)address::remove_s;
+
+    typedef int (__cdecl* clua_equal)(int, int, int);
+    clua_equal equal = (clua_equal)address::equal_s;
 
 
 }
@@ -204,7 +208,9 @@ void remove(int a1, int a2) {
     retcheck::checkRetcheck(address::remove_s);
 }
 
-
+int equal(int a1, int a2, int a3) {
+    return clua::equal(a1, a2, a3);
+}
 #define LUA_REGISTRYINDEX       (-10000)
 #define LUA_ENVIRONINDEX        (-10001)
 #define LUA_GLOBALSINDEX        (-10002)
@@ -263,6 +269,54 @@ void pushboolean(int a1, int a2) {
 
 int pcallx(int a1, int a2, int a3) {
     pcall(a1, a2, a3, 0);
+    return 1;
+}
+
+void settop(int a1, int a2) {
+    int v2; // ecx
+    int i; // esi
+    int v4; // eax
+    int* result; // eax
+
+    v2 = 16 * a2;
+    if (a2 < 0)
+    {
+        v4 = v2 + *(_DWORD*)(a1 + 24) + 16;
+    }
+    else
+    {
+        for (i = *(_DWORD*)(a1 + 20); *(_DWORD*)(a1 + 24) < (unsigned int)(i + v2); i = *(_DWORD*)(a1 + 20))
+        {
+            *(_DWORD*)(*(_DWORD*)(a1 + 24) + 12) = 0;
+            *(_DWORD*)(a1 + 24) += 16;
+        }
+        v4 = v2 + i;
+    }
+    *(_DWORD*)(a1 + 24) = v4;
+
+}
+
+
+BOOL toboolean(int a1x, signed int a2) {
+    DWORD* a1 = (DWORD*)a1x;
+    _DWORD* v2; // edx
+    BOOL result; // eax
+    _DWORD* v4; // edx
+
+    if (a2 <= 0)
+    {
+        v4 = index2adr(a1, a2);
+        result = (v4[3] & (*v4 | 0xFFFFFFFE)) != 0;
+    }
+    else
+    {
+        cout << "FATAL: POSITIVE TOBOOLEAN QUERIED. ill fix this if its ever an actual error, fuck is 0x2153A30 supposed to be??" << endl;
+        /*v2 = &unk_2153A30;
+        if ((unsigned int)(16 * a2 - 16 + a1[5]) < a1[6])
+            v2 = (_DWORD*)(16 * a2 - 16 + a1[5]);
+        result = (v2[3] & (*v2 | 0xFFFFFFFE)) != 0;*/
+    }
+    return result;
 
 }
 #define lua_getfield getfield
@@ -272,6 +326,12 @@ int pcallx(int a1, int a2, int a3) {
 #define lua_gettable gettable
 #define lua_remove remove
 #define lua_pushboolean pushboolean
+#define lua_equal equal
+#define lua_settop settop
+#define lua_pop(L,n) lua_settop(L, -(n)-1)
+#define lua_toboolean toboolean
+
+
 void main() {
 
     Console("exWare Executor");
@@ -315,6 +375,36 @@ void main() {
     lua_pushboolean(L, lc2);
     const int lc3 = lua_toboolean(L, -1);
     lua_pop(L, 1);
+    if (lc3) {
+        lua_getfield(L, LUA_ENVIRONINDEX, "print");
+        lua_pushliteral(L, "Filtering is disabled!");
+        lua_call(L, 1, 0);
+        //assert(lua_gettop(L) - lc_nextra == 0);
+    }
+    enum { lc4 = 0 };
+    lua_getfield(L, LUA_ENVIRONINDEX, "game");
+    lua_pushliteral(L, "Workspace");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_pushliteral(L, "FilteringEnabled");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_pushboolean(L, 1);
+    const int lc5 = lua_equal(L, -2, -1);
+    lua_pop(L, 2);
+    lua_pushboolean(L, lc5);
+    const int lc6 = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    if (lc6) {
+
+        /* print("Filtering is enabled!") */
+        lua_getfield(L, LUA_ENVIRONINDEX, "print");
+        lua_pushliteral(L, "Filtering is enabled!");
+        lua_call(L, 1, 0);
+        //assert(lua_gettop(L) - lc_nextra == 0);
+    }
+    lua_settop(L, (lc4 + lc_nextra));
+    //assert(lua_gettop(L) - lc_nextra == 0);
 }
 
 

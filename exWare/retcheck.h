@@ -19,7 +19,7 @@ using namespace std;
 
 
 #define aslr(x)(x - 0x400000 + (DWORD)GetModuleHandleA(0))
-
+ 
 
 namespace retcheck {
 

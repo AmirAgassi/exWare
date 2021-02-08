@@ -18,7 +18,7 @@ using namespace std;
 #include <Windows.h>
 #define _DWORD DWORD
 
-
+// Louka's old (modified) memory namespace. Thank you
 namespace memory
 {
     bool Compare(const char* pData, const char* bMask, const char* szMask)
@@ -122,6 +122,20 @@ namespace retcheck {
         patchRetcheck(functionalAddr);
         return true;
     }
+    bool checkRetcheckVerbose(DWORD addy) {
+        BYTE* functionalAddr = (BYTE*)addy;
+        while (!(functionalAddr[0] == retcheckInstructions[0] && functionalAddr[2] == retcheckInstructions[1] && functionalAddr[7] == retcheckInstructions[2])) {
+            if (functionalAddr[0] == replacementByte && functionalAddr[2] == 0xA1 && functionalAddr[7] == 0x8B) {
+                restoreRetcheck(functionalAddr);
+                cout << "restoring retcheck" << endl;
+                return false;
+            }
+            functionalAddr += 1;
+        }
+        cout << "patching retcheck" << endl;
+        patchRetcheck(functionalAddr);
+        return true;
+    }
 }
 
 void printTop(int state) {
@@ -164,6 +178,7 @@ namespace address {
     int isnumber_s = aslr(0x13605E0);
     int replace_s = aslr(0x1361500);
     int getmetafield_s = aslr(0x1362720);
+    int call_s = aslr(0x135FD70);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
@@ -196,7 +211,8 @@ namespace clua {
     typedef int(__cdecl* clua_getmetafield)(int, int, const char*);
     clua_getmetafield getmetafield = (clua_getmetafield)address::getmetafield_s;
 
-
+    typedef int (__cdecl* clua_call)(int, int, int);
+    clua_call call = (clua_call)address::call_s;
 
 
 }
@@ -205,6 +221,12 @@ void getfield(int a1, int a2, const char* a3) {
     retcheck::checkRetcheck(address::getfield_s);
     clua::getfield(a1, a2, a3);
     retcheck::checkRetcheck(address::getfield_s);
+}
+
+void call(int a1, int a2, int a3) {
+    retcheck::checkRetcheckVerbose(address::call_s);
+    clua::call(a1, a2, a3);
+    retcheck::checkRetcheckVerbose(address::call_s);
 }
 
 void pushstring(int a1, const char* a2) {
@@ -252,9 +274,9 @@ int equal(int a1, int a2, int a3) {
 DWORD* index2adr(DWORD* lua_state, signed int index) {
     // IDA PRO @ sub_1360F50
     _DWORD* result; // eax
-    int v3; // esi
-    int v4; // edx
-    int v5; // ecx
+    int v3;         // esi
+    int v4;         // edx
+    int v5;         // ecx
     if (index > LUA_REGISTRYINDEX)
         return (_DWORD*)(lua_state[6] + 16 * index);
     switch (index)
@@ -446,7 +468,8 @@ double tonumber(int a1x, signed int a2) {
 
 #define lua_getfield getfield
 #define lua_pushliteral pushstring
-#define lua_call pcallx
+#define lua_call call
+#define lua_pcall pcall
 #define lua_gettop pseudogettop
 #define lua_gettable gettable
 #define lua_remove remove
@@ -535,57 +558,26 @@ void main() {
 
     int L = state;
 
-
     enum { lc_nformalargs = 0 };
+#ifndef NDEBUG
     const int lc_nactualargs = lua_gettop(L);
+#endif
+#ifndef NDEBUG
     const int lc_nextra = (lc_nactualargs - lc_nformalargs);
+#endif
 
-    /* for _,v in pairs(game.Workspace.runtoheven:GetChildren()) do
-     * internal: local f, s, var = explist */
-    enum { lc1 = 0 };
-    lua_getfield(L, LUA_ENVIRONINDEX, "pairs");
-    const int lc2 = lua_gettop(L);
+    /* print(game.Workspace:GetChildren()) */
+    lua_getfield(L, LUA_ENVIRONINDEX, "print");
+    const int lc1 = lua_gettop(L);
     lua_getfield(L, LUA_ENVIRONINDEX, "game");
     lua_pushliteral(L, "Workspace");
-    lua_gettable(L, -2);
-    lua_remove(L, -2);
-    lua_pushliteral(L, "runtoheven");
     lua_gettable(L, -2);
     lua_remove(L, -2);
     lua_pushliteral(L, "GetChildren");
     lua_gettable(L, -2);
     lua_insert(L, -2);
     lua_call(L, 1, LUA_MULTRET);
-    lua_call(L, (lua_gettop(L) - lc2), 3);
-    while (1) {
-
-        /* internal: local var_1, ..., var_n = f(s, var)
-         *           if var_1 == nil then break end
-         *           var = var_1 */
-        lua_pushvalue(L, -3);
-        lua_pushvalue(L, -3);
-        lua_pushvalue(L, -3);
-        lua_call(L, 2, 2);
-        if (lua_isnil(L, -2)) {
-            break;
-        }
-        lua_pushvalue(L, -2);
-        lua_replace(L, -4);
-
-        /* internal: local _ with idx 4
-         * internal: local v with idx 5 */
-
-
-         /* print(v) */
-        lua_getfield(L, LUA_ENVIRONINDEX, "print");
-        lua_pushvalue(L, (5 + lc_nextra));
-        lua_call(L, 1, 0);
-        assert(lua_gettop(L) - lc_nextra == 5);
-
-        /* internal: stack cleanup on scope exit */
-        lua_pop(L, 2);
-    }
-    lua_settop(L, (lc1 + lc_nextra));
+    lua_call(L, (lua_gettop(L) - lc1), 0);
     assert(lua_gettop(L) - lc_nextra == 0);
 
 }

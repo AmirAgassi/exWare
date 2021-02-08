@@ -122,20 +122,6 @@ namespace retcheck {
         patchRetcheck(functionalAddr);
         return true;
     }
-    bool checkRetcheckVerbose(DWORD addy) {
-        BYTE* functionalAddr = (BYTE*)addy;
-        while (!(functionalAddr[0] == retcheckInstructions[0] && functionalAddr[2] == retcheckInstructions[1] && functionalAddr[7] == retcheckInstructions[2])) {
-            if (functionalAddr[0] == replacementByte && functionalAddr[2] == 0xA1 && functionalAddr[7] == 0x8B) {
-                restoreRetcheck(functionalAddr);
-                cout << "restoring retcheck" << endl;
-                return false;
-            }
-            functionalAddr += 1;
-        }
-        cout << "patching retcheck" << endl;
-        patchRetcheck(functionalAddr);
-        return true;
-    }
 }
 
 void printTop(int state) {
@@ -179,6 +165,10 @@ namespace address {
     int replace_s = aslr(0x1361500);
     int getmetafield_s = aslr(0x1362720);
     int call_s = aslr(0x135FD70);
+    int setfield_s = aslr(0x013616D0);
+    int pushcclosure_s = aslr(0x01360AC0);
+    int pushinteger_s = aslr(0x01360C00);
+    int gc_s = aslr(0x1360080);
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);
@@ -211,8 +201,17 @@ namespace clua {
     typedef int(__cdecl* clua_getmetafield)(int, int, const char*);
     clua_getmetafield getmetafield = (clua_getmetafield)address::getmetafield_s;
 
-    typedef int (__cdecl* clua_call)(int, int, int);
+    typedef int(__cdecl* clua_call)(int, int, int);
     clua_call call = (clua_call)address::call_s;
+
+    typedef int* (__stdcall* clua_setfield)(int, signed int, const char*);
+    clua_setfield setfield = (clua_setfield)address::setfield_s;
+
+    typedef int* (__stdcall* clua_pushcclosure)(int, int, int, int, int);
+    clua_pushcclosure pushcclosure = (clua_pushcclosure)address::pushcclosure_s;
+
+    typedef int (__cdecl* clua_gc)(int, int, int);
+    clua_gc gc = (clua_gc)address::gc_s;
 
 
 }
@@ -223,10 +222,28 @@ void getfield(int a1, int a2, const char* a3) {
     retcheck::checkRetcheck(address::getfield_s);
 }
 
+void gc(int a1, int a2, int a3) {
+    retcheck::checkRetcheck(address::getfield_s);hinteger_s);
+    clua::pushinteger(a1, a2);
+    retcheck::checkRetcheck(address::pushinteger_s);
+}
+
+void pushcclosure(int a1, int a2, int a3, int a4, int a5) {
+    retcheck::checkRetcheck(address::pushcclosure_s);
+    clua::pushcclosure(a1, a2, a3, a4, a5);
+    retcheck::checkRetcheck(address::pushcclosure_s);
+}
+
 void call(int a1, int a2, int a3) {
-    retcheck::checkRetcheckVerbose(address::call_s);
+    retcheck::checkRetcheck(address::call_s);
     clua::call(a1, a2, a3);
-    retcheck::checkRetcheckVerbose(address::call_s);
+    retcheck::checkRetcheck(address::call_s);
+}
+
+void setfield(int a1, int a2, const char* a3) {
+    retcheck::checkRetcheck(address::setfield_s);
+    clua::setfield(a1, a2, a3);
+    retcheck::checkRetcheck(address::setfield_s);
 }
 
 void pushstring(int a1, const char* a2) {
@@ -468,7 +485,7 @@ double tonumber(int a1x, signed int a2) {
 
 #define lua_getfield getfield
 #define lua_pushliteral pushstring
-#define lua_call call
+#define lua_call pcallx
 #define lua_pcall pcall
 #define lua_gettop pseudogettop
 #define lua_gettable gettable
@@ -484,8 +501,30 @@ double tonumber(int a1x, signed int a2) {
 #define lua_pushnumber pushnumber
 #define lua_isnumber clua::isnumber
 #define lua_tonumber tonumber
+#define lua_pushcfunction(L,f) pushcclosure(L, (f), 0, 0, 0)
 #define LUA_MULTRET     (-1)
 #define lua_replace replace
+#define lua_isstring isstring
+#define lua_istable istable
+#define lua_isfunction isfunction
+#define lua_type type
+#define lua_pushinteger pushinteger
+
+
+
+
+
+
+
+#define lua_isfunction(L,n)     (lua_type(L, (n)) == LUA_TFUNCTION)
+#define lua_istable(L,n)        (lua_type(L, (n)) == LUA_TTABLE)
+#define lua_islightuserdata(L,n)        (lua_type(L, (n)) == LUA_TLIGHTUSERDATA)
+#define lua_isnil(L,n)          (lua_type(L, (n)) == LUA_TNIL)
+#define lua_isboolean(L,n)      (lua_type(L, (n)) == LUA_TBOOLEAN)
+#define lua_isthread(L,n)       (lua_type(L, (n)) == LUA_TTHREAD)
+#define lua_isnone(L,n)         (lua_type(L, (n)) == LUA_TNONE)
+#define lua_isnoneornil(L, n)   (lua_type(L, (n)) <= 0)
+
 
 #define LUA_TNIL                0
 #define LUA_TBOOLEAN            1
@@ -497,6 +536,8 @@ double tonumber(int a1x, signed int a2) {
 #define LUA_TUSERDATA           7
 #define LUA_TTHREAD             8
 #define lua_isnil(L,n)          (type(L, (n)) == LUA_TNIL)
+#define lua_setfield setfield
+#define lua_State DWORD
 signed int type(int a1x, signed int a2) {
     DWORD* a1 = (DWORD*)a1x;
     _DWORD* v2; // eax
@@ -531,6 +572,61 @@ static void lc_add(int L, int idxa, int idxb) {
         }
     }
 }
+void luaL_error(int a, const char* b) {
+
+    cout << endl << "Lua Env Error: " << b << endl;
+
+}
+
+#define lua_tostring tostring
+const char* tostring(int a1x, signed int a2)
+{
+    DWORD* a1 = (DWORD*)a1x;
+    int* v2 = 0; // edx
+    int result; // eax
+
+    if (a2 <= 0)
+    {
+        v2 = (int*)index2adr(a1, a2);
+    }
+    else
+    {
+        cout << "DFSADKFKASDFKASDKF ";
+    }
+    if (v2[3] == 5)
+        result = *v2;
+    else
+        result = 0;
+    return (const char*)result;
+}
+
+void printStack(int state) {
+    for (int i = 1; i <= lua_gettop(state); i++) {
+        DWORD* index = index2adr((DWORD*)state, -i);
+        cout << (*(_DWORD*)index ^ aslr(0x28D9D90)) << " , index " << i << endl;
+    }
+}
+
+int isstring(int a1x, int a2) {
+    DWORD* a1 = (DWORD*)a1x;
+    int* v2; // edx
+    int result; // eax
+
+    if (a2 <= 0)
+    {
+        v2 = (int*)index2adr(a1, a2);
+    }
+    else
+    {
+        cout << "isstring error";
+    }
+    if (v2[3] == 5)
+        result = *v2;
+    else
+        result = 0;
+    return result;
+}
+
 
 
 void main() {
@@ -549,7 +645,7 @@ void main() {
 
     state = getstate((DWORD)scriptContext);
     if (pseudogettop(state) == 0) {
-        cout << "Done." << endl;
+        cout << "Done." << endl << endl;
     }
     else {
         cout << "Failed." << endl << "FATAL: ScriptContext failed to initialize, lua_state is nonexistant. The exploit will not continue. " << endl << "Top: " << pseudogettop(state) << " (should be 0)";
@@ -558,6 +654,14 @@ void main() {
 
     int L = state;
 
+
+
+}
+
+
+/* name: (main)
+ * function(...) */
+static int lcf_main(lua_State L) {
     enum { lc_nformalargs = 0 };
 #ifndef NDEBUG
     const int lc_nactualargs = lua_gettop(L);
@@ -566,22 +670,170 @@ void main() {
     const int lc_nextra = (lc_nactualargs - lc_nformalargs);
 #endif
 
-    /* print(game.Workspace:GetChildren()) */
-    lua_getfield(L, LUA_ENVIRONINDEX, "print");
-    const int lc1 = lua_gettop(L);
-    lua_getfield(L, LUA_ENVIRONINDEX, "game");
-    lua_pushliteral(L, "Workspace");
-    lua_gettable(L, -2);
-    lua_remove(L, -2);
-    lua_pushliteral(L, "GetChildren");
+    /* player = Workspace:FindFirstChild("runtoheven") */
+    lua_getfield(L, LUA_ENVIRONINDEX, "Workspace");
+    lua_pushliteral(L, "FindFirstChild");
     lua_gettable(L, -2);
     lua_insert(L, -2);
-    lua_call(L, 1, LUA_MULTRET);
-    lua_call(L, (lua_gettop(L) - lc1), 0);
+    lua_pushliteral(L, "runtoheven");
+    lua_call(L, 2, 1);
+    lua_setfield(L, LUA_ENVIRONINDEX, "player");
     assert(lua_gettop(L) - lc_nextra == 0);
 
+    /* player.Head:Remove() */
+    lua_getfield(L, LUA_ENVIRONINDEX, "player");
+    lua_pushliteral(L, "Head");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_pushliteral(L, "Remove");
+    lua_gettable(L, -2);
+    lua_insert(L, -2);
+    lua_call(L, 1, 0);
+    assert(lua_gettop(L) - lc_nextra == 0);
+
+    /* print(player.Head) */
+    lua_getfield(L, LUA_ENVIRONINDEX, "print");
+    lua_getfield(L, LUA_ENVIRONINDEX, "player");
+    lua_pushliteral(L, "Head");
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+    lua_call(L, 1, 0);
+    assert(lua_gettop(L) - lc_nextra == 0);
+    return 0;
 }
 
+
+/* from lua.c */
+static int traceback(lua_State L) {
+    if (!lua_isstring(L, 1))  /* 'message' not a string? */
+        return 1;  /* keep it intact */
+    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return 1;
+    }
+    lua_getfield(L, -1, "traceback");
+    if (!lua_isfunction(L, -1)) {
+        lua_pop(L, 2);
+        return 1;
+    }
+    lua_pushvalue(L, 1);  /* pass error message */
+    lua_pushinteger(L, 2);  /* skip this function and traceback */
+    lua_call(L, 2, 1);  /* call debug.traceback */
+    return 1;
+}
+
+
+static void lc_l_message(const char* pname, const char* msg) {
+    if (pname) fprintf(stderr, "%s: ", pname);
+    fprintf(stderr, "%s\n", msg);
+    fflush(stderr);
+}
+
+static int lc_report(lua_State L, int status) {
+    if (status && !lua_isnil(L, -1)) {
+        const char* msg = lua_tostring(L, -1);
+        if (msg == NULL) msg = "(error object is not a string)";
+        /*FIX-IMROVE:progname*/
+        lc_l_message("lua", msg);
+        lua_pop(L, 1);
+    }
+    return status;
+}
+
+static int lc_docall(lua_State L, int narg, int clear) {
+    int status;
+    int base = lua_gettop(L) - narg;  /* function index */
+    lua_pushcfunction(L, traceback);  /* push traceback function */
+    lua_insert(L, base);  /* put it under chunk and args */
+    /*FIX? signal(SIGINT, laction); */
+    status = lua_pcall(L, narg, (clear ? 0 : LUA_MULTRET), base);
+    /*FIX? signal(SIGINT, SIG_DFL); */
+    lua_remove(L, base);  /* remove traceback function */
+    /* force a complete garbage collection in case of errors */
+    if (status != 0) lua_gc(L, LUA_GCCOLLECT, 0);
+    return status;
+}
+
+static int lc_dofile(lua_State L, const char* name) {
+    int status = luaL_loadfile(L, name) || lc_docall(L, 0, 1);
+    return lc_report(L, status);
+}
+
+static int lc_dostring(lua_State L, const char* s, const char* name) {
+    int status = luaL_loadbuffer(L, s, strlen(s), name) || lc_docall(L, 0, 1);
+    return lc_report(L, status);
+}
+
+static int lc_handle_luainit(lua_State L) {
+    const char* init = getenv(LUA_INIT);
+    if (init == NULL) return 0;  /* status OK */
+    else if (init[0] == '@')
+        return lc_dofile(L, init + 1);
+    else
+        return lc_dostring(L, init, "=" LUA_INIT);
+}
+
+
+typedef struct {
+    int c;
+    const char** v;
+} lc_args_t;
+
+
+/* create global arg table */
+static void lc_createarg(lua_State L, const lc_args_t* const args) {
+    int i;
+    lua_newtable(L);
+    for (i = 0; i < args->c; i++) {
+        lua_pushstring(L, args->v[i]);
+        lua_rawseti(L, -2, i);
+    }
+    lua_setglobal(L, "arg");
+}
+
+
+static int lc_pmain(lua_State L) {
+    luaL_openlibs(L);
+
+    const lc_args_t* const args = (lc_args_t*)lua_touserdata(L, 1);
+    lc_createarg(L, args);
+
+    lua_pushcfunction(L, traceback);
+
+    const int status1 = lc_handle_luainit(L);
+    if (status1 != 0) return 0;
+
+    /* note: IMPROVE: closure not always needed here */
+    lua_newtable(L); /* closure table */
+    lua_pushcclosure(L, lcf_main, 1);
+    int i;
+    for (i = 1; i < args->c; i++) {
+        lua_pushstring(L, args->v[i]);
+    }
+    int status2 = lua_pcall(L, args->c - 1, 0, -2);
+    if (status2 != 0) {
+        const char* msg = lua_tostring(L, -1);
+        if (msg == NULL) msg = "(error object is not a string)";
+        fputs(msg, stderr);
+    }
+    return 0;
+}
+
+
+int main(int argc, const char** argv) {
+    lc_args_t args = { argc, argv };
+    lua_State L = luaL_newstate();
+    if (!L) { fputs("Failed creating Lua state.", stderr); exit(1); }
+
+    int status = lua_cpcall(L, lc_pmain, &args);
+    if (status != 0) {
+        fputs(lua_tostring(L, -1), stderr);
+    }
+
+    lua_close(L);
+    return 0;
+}
 
 
 

@@ -1,52 +1,39 @@
 ﻿  dllmain.cpp
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(16,1): warning C4005: '_CRT_SECURE_NO_WARNINGS': macro redefinition
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\retcheck.h(15,1): warning C4005: '_CRT_SECURE_NO_WARNINGS': macro redefinition
 C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\pch.cpp : message : see previous definition of '_CRT_SECURE_NO_WARNINGS'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(350,10): warning C4101: 'result': unreferenced local variable
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(373,13): warning C4101: 'v2': unreferenced local variable
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(399,10): warning C4101: 'result': unreferenced local variable
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(440,35): warning C4244: '=': conversion from '__int64' to 'DWORD', possible loss of data
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(437,10): warning C4101: 'result': unreferenced local variable
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(453,10): warning C4101: 'v5': unreferenced local variable
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(518,1): warning C4005: 'lua_isfunction': macro redefinition
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(508): message : see previous definition of 'lua_isfunction'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(519,1): warning C4005: 'lua_istable': macro redefinition
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(507): message : see previous definition of 'lua_istable'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(537,1): warning C4005: 'lua_isnil': macro redefinition
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(521): message : see previous definition of 'lua_isnil'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(561,49): warning C4244: 'argument': conversion from 'double' to '__int64', possible loss of data
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(631,13): warning C4326: return type of 'main' should be 'int' instead of 'void'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(746,5): error C2664: 'void pushcclosure(int,int,int,int,int)': cannot convert argument 2 from 'int (__cdecl *)(DWORD)' to 'int'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(746,5): message : There is no context in which this conversion is possible
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(230,6): message : see declaration of 'pushcclosure'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(749,65): error C2440: '=': cannot convert from 'void' to 'int'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(749,23): message : Expressions of type void cannot be converted to other types
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(753,32): error C2065: 'LUA_GCCOLLECT': undeclared identifier
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(753,22): error C3861: 'lua_gc': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(758,18): error C3861: 'luaL_loadfile': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(763,18): error C3861: 'luaL_loadbuffer': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(768,31): error C2065: 'LUA_INIT': undeclared identifier
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(773,41): error C2146: syntax error: missing ')' before identifier 'LUA_INIT'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(773,41): error C2146: syntax error: missing ';' before identifier 'LUA_INIT'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(773,49): error C2059: syntax error: ')'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(773,41): error C2065: 'LUA_INIT': undeclared identifier
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(786,5): error C3861: 'lua_newtable': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(788,9): error C3861: 'lua_pushstring': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(789,9): error C3861: 'lua_rawseti': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(791,5): error C3861: 'lua_setglobal': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(796,5): error C3861: 'luaL_openlibs': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(798,47): error C3861: 'lua_touserdata': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(801,5): error C2664: 'void pushcclosure(int,int,int,int,int)': cannot convert argument 2 from 'int (__cdecl *)(DWORD)' to 'int'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(801,5): message : There is no context in which this conversion is possible
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(230,6): message : see declaration of 'pushcclosure'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(807,5): error C3861: 'lua_newtable': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(808,5): error C3861: 'lua_pushcclosure': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(811,9): error C3861: 'lua_pushstring': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(813,51): error C2440: 'initializing': cannot convert from 'void' to 'int'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(813,17): message : Expressions of type void cannot be converted to other types
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(823,5): error C2731: 'main': function cannot be overloaded
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(823): message : see declaration of 'main'
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(825,19): error C3861: 'luaL_newstate': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(828,18): error C3861: 'lua_cpcall': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(833,5): error C3861: 'lua_close': identifier not found
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(834,5): error C2562: 'main': 'void' function returning a value
-C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(823): message : see declaration of 'main'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(70,1): warning C4005: 'lua_newtable': macro redefinition
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(69): message : see previous definition of 'lua_newtable'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(79,1): warning C4005: 'lua_isfunction': macro redefinition
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(65): message : see previous definition of 'lua_isfunction'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(80,1): warning C4005: 'lua_istable': macro redefinition
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(64): message : see previous definition of 'lua_istable'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(332,10): warning C4101: 'result': unreferenced local variable
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(355,13): warning C4101: 'v2': unreferenced local variable
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(381,10): warning C4101: 'result': unreferenced local variable
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(422,35): warning C4244: '=': conversion from '__int64' to 'DWORD', possible loss of data
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(419,10): warning C4101: 'result': unreferenced local variable
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(435,10): warning C4101: 'v5': unreferenced local variable
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(490,49): warning C4244: 'argument': conversion from 'double' to '__int64', possible loss of data
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(121,5): error C2065: 'lc_args_t': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(121,15): error C2146: syntax error: missing ';' before identifier 'args'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(121,15): error C2065: 'args': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(121,35): error C3079: an initializer list cannot be used as the right operand of this assignment operator
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(124,32): error C2065: 'lc_pmain': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(124,43): error C2065: 'args': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(124,18): error C3861: 'lua_cpcall': identifier not found
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(219,5): error C2664: 'void pushcclosure(int,int,int)': cannot convert argument 2 from 'int (__cdecl *)(DWORD)' to 'int'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(219,5): message : There is no context in which this conversion is possible
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(211,6): message : see declaration of 'pushcclosure'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(231,31): error C2065: 'LUA_INIT': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(234,16): error C3861: 'lc_dofile': identifier not found
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(236,41): error C2146: syntax error: missing ')' before identifier 'LUA_INIT'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(236,16): error C3861: 'lc_dostring': identifier not found
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(236,41): error C2146: syntax error: missing ';' before identifier 'LUA_INIT'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(236,49): error C2059: syntax error: ')'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(236,41): error C2065: 'LUA_INIT': undeclared identifier
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(262,5): error C2664: 'void pushcclosure(int,int,int)': cannot convert argument 2 from 'int (__cdecl *)(DWORD)' to 'int'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(262,5): message : There is no context in which this conversion is possible
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(211,6): message : see declaration of 'pushcclosure'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(269,36): error C2664: 'void pushcclosure(int,int,int)': cannot convert argument 2 from 'int (__cdecl *)(DWORD)' to 'int'
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\dllmain.cpp(269,25): message : There is no context in which this conversion is possible
+C:\Users\Admin\Desktop\Reverse Engineering C++\exWare\exWare\luac.h(211,6): message : see declaration of 'pushcclosure'

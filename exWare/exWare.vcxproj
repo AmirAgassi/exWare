@@ -152,9 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="luac.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="retcheck.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

@@ -115,7 +115,7 @@ namespace address {
     int gc_s = aslr(0x1360080);
     int createtable_s = aslr(0x0135FF30);
     int rawseti_s = aslr(0x13613A0);
-    int touserdata_s = aslr(0x1361FB0);
+    int touserdata_s = aslr(0x1361FB0); //aobs later :(
 }
 namespace clua {
     typedef int(__stdcall* clua_getfield)(int, int, const char*);

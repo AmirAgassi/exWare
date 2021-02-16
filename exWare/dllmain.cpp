@@ -277,7 +277,7 @@ static int lc_pmain(lua_State L) {
         if (msg == NULL) msg = "(error object is not a string)";
         fputs(msg, stderr);
     }
-    return 0;
+    return 0; 
 }
 
 

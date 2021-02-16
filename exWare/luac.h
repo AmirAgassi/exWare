@@ -176,7 +176,7 @@ namespace clua {
 
 
 
-}
+} 
 #define lua_touserdata clua::touserdata
 void getfield(int a1, int a2, const char* a3) {
     retcheck::checkRetcheck(address::getfield_s);

@@ -5,6 +5,8 @@ Further details coming later due to the unfinished nature of the exploit. Exploi
 
 Console uses freopen, add "_CRT_SECURE_NO_WARNINGS" to your IDE's C/C++ Preprocessor definitions.
 
+**Dead until further notice due to other projects and a lack of interest.**
+
 # CLVM information from my previous project, Danghui
 
 The CLVM's objective is to achieve script execution through a custom virtual machine that operates on a foreign, untranslated and incompatable lua state. It copies the Lua C functions from Roblox to a seperate DLL, and does everything *WITHOUT BYPASSING ANY MAJOR CHECKS. (memcheck, retcheck, hookcheck, etc)*. This is an amazing solution to executing code compared to proto conversion/bytecode conversion, as it rarely touches anything in Roblox's memory, and rarely calls any Roblox functions externally, while outsourcing all of the execution work to the local lua_state. 
